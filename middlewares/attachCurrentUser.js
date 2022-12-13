@@ -10,14 +10,14 @@ export default async function attachCurrentUser(req, res, next) {
     );
 
     if (!user) {
-      return res.status(404).json({ msg: "User not found." });
+      return res.status(404).json({ msg: "Usuário não encontrado." });
     }
 
     req.currentUser = user;
 
     next();
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
   }
 }

@@ -1,13 +1,17 @@
+import * as dotenv from "dotenv";
 import express from "express";
 import { generateToken } from "../config/jwt.config.js";
 import isAuth from "../middlewares/isAuth.js";
 import attachCurrentUser from "../middlewares/attachCurrentUser.js";
 import { isAdmin } from "../middlewares/isAdmin.js";
 import { UserModel } from "../model/user.model.js";
+import { BioModel } from "../model/bio.model.js";
+import { ProductModel } from "../model/product.model.js";
 
 import bcrypt from "bcrypt";
+import { isArtist } from "../middlewares/isArtist.js";
 
-const SALT_ROUNDS = 10;
+dotenv.config();
 
 const userRouter = express.Router();
 
@@ -26,7 +30,7 @@ userRouter.post("/signup", async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(SALT_ROUNDS);
+    const salt = await bcrypt.genSalt(Number(process.env.SALT_ROUNDS));
 
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -37,9 +41,9 @@ userRouter.post("/signup", async (req, res) => {
 
     delete createdUser._doc.passwordHash;
     return res.status(201).json(createdUser);
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
   }
 });
 
@@ -68,20 +72,128 @@ userRouter.post("/login", async (req, res) => {
     } else {
       return res.status(401).json({ msg: "Email ou senha invalidos." });
     }
-  } catch (err) {
-    console.log(err);
-    return res.status(500).json(err);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
   }
 });
 
-// userRouter.get(
-//   "/teste",
-//   isAuth,
-//   attachCurrentUser,
-//   isAdmin,
-//   async (req, res) => {
-//     return res.status(200).json(req.currentUser);
-//   }
-// );
+userRouter.post("/favorites/:productId", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+    const product = await ProductModel.findOne({ _id: req.params.productId });
+
+    await UserModel.findOneAndUpdate(
+      { _id: loggedUser._id },
+      { $push: { favorites: product._id } },
+      { passwordHash: 0 },
+      { new: true }
+    );
+
+    return res.status(200).json(product);
+
+  } catch (error) {
+    console.log(error);
+    return res.stauts(500).json(error);
+  }
+});
+
+userRouter.delete("/favorites/:productId", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+    const product = await ProductModel.findOne({ _id: req.params.productId });
+
+    await UserModel.findOneAndUpdate(
+      { _id: loggedUser._id },
+      { $pull: { favorites: product._id } },
+      { new: true }
+    );
+
+    return res.status(200).json(product);
+
+  } catch (error) {
+    console.log(error);
+    return res.stauts(500).json(error);
+  }
+});
+
+userRouter.get("/account", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+
+    const user = await UserModel.findOne(
+      { _id: loggedUser._id },
+      { passwordHash: 0 }
+    ).populate("bio");
+
+
+    return res.status(200).json(user);
+
+  } catch (error) {
+    console.log();
+    return res.status(500).json(error);
+  }
+});
+
+userRouter.get("/bio", isAuth, attachCurrentUser, isArtist, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+    const userBio = await BioModel.findOne({ owner: loggedUser._id });
+
+
+    return res.status(200).json(userBio);
+
+  } catch (error) {
+    console.log();
+    return res.status(500).json(error);
+  }
+});
+
+userRouter.post("/bio", isAuth, attachCurrentUser, isArtist, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+
+    const bio = await BioModel.create({
+      ...req.body,
+      owner: loggedUser._id
+    });
+
+    await UserModel.findOneAndUpdate(
+      { _id: loggedUser._id },
+      { bio: bio._doc._id },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json(bio);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
+userRouter.put("/bio", isAuth, attachCurrentUser, isArtist, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+
+    const bio = await BioModel.findOneAndUpdate(
+      { _id: loggedUser.bio },
+      { ...req.body },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json(bio);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
 
 export { userRouter };

@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 const userSchema = new Schema({
   name: { type: String, required: true, trim: true },
@@ -10,8 +10,10 @@ const userSchema = new Schema({
     match: /[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+/gm,
   },
   passwordHash: { type: String, required: true },
-  role: { type: String, enum: ["ADMIN", "USER"], default: "USER" },
+  role: { type: String, enum: ["ADMIN", "USER", "ARTIST"], default: "USER" },
   createdAt: { type: Date, default: Date.now() },
+  favorites: [{ type: Types.ObjectId, ref: "Product" }],
+  bio: { type: Types.ObjectId, ref: "Bio" }
 });
 
 export const UserModel = model("User", userSchema);
