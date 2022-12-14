@@ -3,6 +3,7 @@ import attachCurrentUser from "../middlewares/attachCurrentUser.js";
 import { isArtist } from "../middlewares/isArtist.js";
 import isAuth from "../middlewares/isAuth.js";
 import { ProductModel } from "../model/product.model.js";
+import { UserModel } from "../model/user.model.js";
 
 const productRouter = express();
 
@@ -15,6 +16,12 @@ productRouter.post("/new-product", isAuth, attachCurrentUser, isArtist, async (r
          owner: loggedUser._id
       });
 
+      await UserModel.findOneAndUpdate(
+         { _id: loggedUser._id },
+         { $push: { products: newProduct._doc._id } },
+         { runValidators: true }
+      );
+
       return res.status(201).json(newProduct);
 
    } catch (error) {
@@ -23,10 +30,11 @@ productRouter.post("/new-product", isAuth, attachCurrentUser, isArtist, async (r
    }
 });
 
-productRouter.get("/", async (req, res) => {
+productRouter.get("/", isAuth, attachCurrentUser, isArtist, async (req, res) => {
    try {
 
-      const products = await ProductModel.find({});
+      const loggedUser = req.currentUser;
+      const products = await ProductModel.find({ owner: loggedUser._id });
 
       return res.status(200).json(products);
 
@@ -36,7 +44,7 @@ productRouter.get("/", async (req, res) => {
    }
 });
 
-productRouter.get("/:productId", async (req, res) => {
+productRouter.get("/:productId", isAuth, attachCurrentUser, isArtist, async (req, res) => {
    try {
 
       const product = await ProductModel.findOne({ _id: req.params.productId });
@@ -68,10 +76,18 @@ productRouter.put("/:productId", isAuth, attachCurrentUser, isArtist, async (req
 
 productRouter.delete("/:productId", isAuth, attachCurrentUser, isArtist, async (req, res) => {
    try {
+      const loggedUser = req.currentUser;
+      const productDeleted = await ProductModel.findOne({ owner: loggedUser._id });
 
-      const productDeleted = await ProductModel.deleteOne({ _id: req.params.productId });
+      const updateUserProducts = await UserModel.findOneAndUpdate(
+         { _id: loggedUser._id },
+         { $pull: { products: productDeleted._id } },
+         { new: true }
+      );
 
-      return res.status(200).json({ msg: "Produto deletado com sucesso" });
+      await ProductModel.findOneAndDelete({ _id: productDeleted._id });
+
+      return res.status(200).json(updateUserProducts);
 
    } catch (error) {
       console.log(error);

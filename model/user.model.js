@@ -12,6 +12,7 @@ const userSchema = new Schema({
   passwordHash: { type: String, required: true },
   role: { type: String, enum: ["ADMIN", "USER", "ARTIST"], default: "USER" },
   createdAt: { type: Date, default: Date.now() },
+  products: [{ type: Types.ObjectId, ref: "Product" }],
   favorites: [{ type: Types.ObjectId, ref: "Product" }],
   bio: { type: Types.ObjectId, ref: "Bio" }
 });

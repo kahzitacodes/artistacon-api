@@ -31,6 +31,7 @@ const bioSchema = new Schema({
    twitter_URL: { type: String },
    instagram_URL: { type: String },
    facebook_URL: { type: String },
+   twitch_URL: { type: String },
    tiktok_URL: { type: String },
    youtube_URL: { type: String }
 });

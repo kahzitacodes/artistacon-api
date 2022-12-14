@@ -87,7 +87,6 @@ userRouter.post("/favorites/:productId", isAuth, attachCurrentUser, async (req, 
     await UserModel.findOneAndUpdate(
       { _id: loggedUser._id },
       { $push: { favorites: product._id } },
-      { passwordHash: 0 },
       { new: true }
     );
 

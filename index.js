@@ -20,7 +20,7 @@ const API_VERSION = "1.0";
 
 app.use(`/api/${API_VERSION}/user`, userRouter);
 app.use(`/api/${API_VERSION}/uploadImage`, uploadImgRouter);
-app.use(`/api/${API_VERSION}/products`, productRouter);
+app.use(`/api/${API_VERSION}/user/products`, productRouter);
 app.use(`/api/${API_VERSION}/schedule`, scheduleRouter);
 app.use(`/api/${API_VERSION}/artists`, artistsRouter);
 
