@@ -13,7 +13,7 @@ connectToDB();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: process.env.REACT_APP_URL }));
 app.use(express.json());
 
 const API_VERSION = "1.0";
