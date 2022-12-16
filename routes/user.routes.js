@@ -78,6 +78,22 @@ userRouter.post("/login", async (req, res) => {
   }
 });
 
+userRouter.patch("/account", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+    const updateUser = await UserModel.findOneAndUpdate(
+      { _id: loggedUser._id },
+      { ...req.body },
+      { new: true, runValidators: true }
+    );
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
+});
+
 userRouter.post("/favorites/:productId", isAuth, attachCurrentUser, async (req, res) => {
   try {
 
@@ -94,7 +110,21 @@ userRouter.post("/favorites/:productId", isAuth, attachCurrentUser, async (req, 
 
   } catch (error) {
     console.log(error);
-    return res.stauts(500).json(error);
+    return res.status(500).json(error);
+  }
+});
+
+userRouter.get("/favorites", isAuth, attachCurrentUser, async (req, res) => {
+  try {
+
+    const loggedUser = req.currentUser;
+    const favoriteProducts = await UserModel.find({ _id: loggedUser._id }, { "favorites": 1, "_id": 0 }).populate("favorites");
+
+    return res.status(200).json(favoriteProducts);
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
   }
 });
 

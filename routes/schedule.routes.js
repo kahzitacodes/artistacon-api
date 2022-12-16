@@ -32,6 +32,19 @@ scheduleRouter.get("/", async (req, res) => {
    }
 });
 
+scheduleRouter.get("/:activityId", isAuth, attachCurrentUser, isAdmin, async (req, res) => {
+   try {
+
+      const scheduleActivity = await ScheduleModel.findOne({ _id: req.params.activityId });
+
+      return res.status(200).json(scheduleActivity);
+
+   } catch (error) {
+      console.log(error);
+      return res.status(500);
+   }
+});
+
 scheduleRouter.put("/:activityId", isAuth, attachCurrentUser, isAdmin, async (req, res) => {
    try {
 
