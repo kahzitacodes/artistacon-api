@@ -7,7 +7,17 @@ const artistsRouter = express.Router();
 artistsRouter.get("/", async (req, res) => {
    try {
 
-      const artistUsers = await UserModel.find({ role: "ARTIST" }, { email: 0, favorites: 0, passwordHash: 0 }).populate("bio");
+      const artistUsers = await UserModel.find(
+         {
+            role: "ARTIST",
+            bio: { $exists: true }
+         },
+         {
+            email: 0,
+            favorites: 0,
+            passwordHash: 0
+         }
+      ).populate("bio");
 
       return res.status(200).json(artistUsers);
 

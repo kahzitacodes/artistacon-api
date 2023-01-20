@@ -118,7 +118,22 @@ userRouter.get("/favorites", isAuth, attachCurrentUser, async (req, res) => {
   try {
 
     const loggedUser = req.currentUser;
-    const favoriteProducts = await UserModel.find({ _id: loggedUser._id }, { "favorites": 1, "_id": 0 }).populate("favorites");
+    const favoriteProducts = await UserModel.find(
+
+      { _id: loggedUser._id },
+      { "favorites": 1, "_id": 0 }
+
+    ).populate([{
+      path: "favorites",
+      populate: [{
+        path: "owner",
+        select: "bio",
+        populate: [{
+          path: "bio",
+          select: "artistic_name avatar -_id"
+        }]
+      }]
+    }]);
 
     return res.status(200).json(favoriteProducts);
 
