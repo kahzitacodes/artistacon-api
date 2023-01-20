@@ -32,6 +32,19 @@ scheduleRouter.get("/", async (req, res) => {
    }
 });
 
+scheduleRouter.get("/recent", async (req, res) => {
+   try {
+
+      const completeSchedule = await ScheduleModel.find({}).limit(4);
+
+      return res.status(200).json(completeSchedule);
+
+   } catch (error) {
+      console.log(error);
+      return res.status(500);
+   }
+});
+
 scheduleRouter.get("/:activityId", isAuth, attachCurrentUser, isAdmin, async (req, res) => {
    try {
 
