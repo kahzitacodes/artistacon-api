@@ -22,7 +22,7 @@ userRouter.post("/signup", async (req, res) => {
     if (
       !password ||
       !password.match(
-        /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$/gm
+        /^[A-Za-z0-9#?!@$ %^&*-_]{6,}$/gm
       )
     ) {
       return res.status(400).json({
